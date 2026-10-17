@@ -1,0 +1,50 @@
+# Production deploy on the VPS: `docker compose up -d --build`.
+# Expects the shared Traefik instance on the external "proxy" network
+# with a certificate resolver named "le", the shared Postgres server on the
+# external "db" network, and the variables below in .env (see README).
+services:
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    networks: [proxy]
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.study.rule=Host(`study.teaz.pro`)
+      - traefik.http.routers.study.tls.certresolver=le
+      - traefik.http.services.study.loadbalancer.server.port=80
+      # Shown and controllable in Teaz Pulse.
+      - pro.teaz.pulse.app=Teaz Study
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env, see README}
+      # Own database "study" with own user "study" on the shared Postgres server.
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:?set SPRING_DATASOURCE_URL in .env, see README}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?set SPRING_DATASOURCE_USERNAME in .env, see README}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?set SPRING_DATASOURCE_PASSWORD in .env, see README}
+    volumes:
+      - files:/data/files
+    networks: [proxy, db]
+    labels:
+      - traefik.enable=true
+      # Same host, /api only; Traefik prefers this longer rule over the frontend's.
+      - traefik.http.routers.study-api.rule=Host(`study.teaz.pro`) && PathPrefix(`/api`)
+      - traefik.http.routers.study-api.tls.certresolver=le
+      - traefik.http.services.study-api.loadbalancer.server.port=8080
+      # Traefik must reach it via "proxy", not the database network.
+      - traefik.docker.network=proxy
+      - pro.teaz.pulse.app=Teaz Study
+
+volumes:
+  # Uploaded material (originals). Generated pages and progress live in the database.
+  files:
+
+networks:
+  proxy:
+    external: true
+  # The shared Postgres server's network (internal), see /opt/teazpro/postgres.
+  db:
+    external: true
