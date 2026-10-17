@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/api")
 public class CourseController {
 
 	private final CourseService service;
@@ -25,41 +25,47 @@ public class CourseController {
 		this.service = service;
 	}
 
-	@GetMapping
+	/** For other Teaz apps (Portal's Study tile): courses and progress in percent. CORS-enabled, see SecurityConfig. */
+	@GetMapping("/overview")
+	public CourseDtos.Overview overview() {
+		return service.overview();
+	}
+
+	@GetMapping("/courses")
 	public List<CourseDtos.CourseSummary> list() {
 		return service.list();
 	}
 
-	@PostMapping
+	@PostMapping("/courses")
 	public CourseDtos.CourseDetail create(@RequestBody CourseDtos.TitleRequest request) {
 		return service.create(request.title());
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/courses/{id}")
 	public CourseDtos.CourseDetail detail(@PathVariable UUID id) {
 		return service.detail(id);
 	}
 
-	@PatchMapping("/{id}")
+	@PatchMapping("/courses/{id}")
 	public CourseDtos.CourseDetail rename(@PathVariable UUID id, @RequestBody CourseDtos.TitleRequest request) {
 		service.rename(id, request.title());
 		return service.detail(id);
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/courses/{id}")
 	public ResponseEntity<Void> delete(@PathVariable UUID id) {
 		service.delete(id);
 		return ResponseEntity.noContent().build();
 	}
 
 	/** Multipart field "files", one or more PDFs/images. Starts the analysis. */
-	@PostMapping("/{id}/files")
+	@PostMapping("/courses/{id}/files")
 	public CourseDtos.CourseDetail upload(@PathVariable UUID id, @RequestParam("files") List<MultipartFile> files) {
 		return service.upload(id, files);
 	}
 
 	/** Retry a failed analysis. */
-	@PostMapping("/{id}/analyze")
+	@PostMapping("/courses/{id}/analyze")
 	public CourseDtos.CourseDetail analyze(@PathVariable UUID id) {
 		return service.analyze(id);
 	}

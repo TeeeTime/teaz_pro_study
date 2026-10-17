@@ -55,6 +55,23 @@ Number inputs accept `3,5`, `3.5`, `−2`, `1/4`. A new block type needs a
 schema in `AiSchemas`, a check in `BlockValidator` and a component in
 `BlockView.vue`. Practice exercises (planned) are meant to reuse these blocks.
 
+## API for other apps
+
+`GET https://study.teaz.pro/api/overview`, with the caller's Keycloak access
+token (any Teaz app's token works, same realm; the user needs `study-user`,
+otherwise 403):
+
+```json
+{ "courses": [ { "id": "…", "title": "Operations Research", "percent": 64 } ] }
+```
+
+The logged-in user's courses, newest first. `percent` (0-100, rounded down)
+is the average over all lectures of each lecture's completed share of pages;
+lectures whose pages weren't generated yet count as 0 %, so one finished
+lecture out of ten reads 10 %. CORS allows the origins in
+`study.cors.allowed-origins` (`application-prod.properties`, currently
+`https://portal.teaz.pro`). Portal's Study tile uses it.
+
 ## Running locally
 
 ```sh

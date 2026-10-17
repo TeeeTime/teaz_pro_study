@@ -1,6 +1,7 @@
 package pro.teaz.study;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
@@ -10,9 +11,13 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *
  * @param storageDir where uploaded material is kept
  * @param ai         Claude API access and models
+ * @param cors       other Teaz apps allowed to read /api/overview from the browser
  */
 @ConfigurationProperties("study")
-public record StudyProperties(Path storageDir, @DefaultValue Ai ai) {
+public record StudyProperties(Path storageDir, @DefaultValue Ai ai, @DefaultValue Cors cors) {
+
+	public record Cors(@DefaultValue List<String> allowedOrigins) {
+	}
 
 	/**
 	 * @param apiKey         unset or blank = MockStudyAi

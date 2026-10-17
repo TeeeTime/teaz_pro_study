@@ -13,7 +13,7 @@ services:
       - traefik.http.routers.study.tls.certresolver=le
       - traefik.http.services.study.loadbalancer.server.port=80
       # Shown and controllable in Teaz Pulse.
-      - pro.teaz.pulse.app=Teaz Study
+      - pro.teaz.pulse.app=Study
 
   backend:
     build: ./backend
@@ -36,7 +36,7 @@ services:
       - traefik.http.services.study-api.loadbalancer.server.port=8080
       # Traefik must reach it via "proxy", not the database network.
       - traefik.docker.network=proxy
-      - pro.teaz.pulse.app=Teaz Study
+      - pro.teaz.pulse.app=Study
 
 volumes:
   # Uploaded material (originals). Generated pages and progress live in the database.

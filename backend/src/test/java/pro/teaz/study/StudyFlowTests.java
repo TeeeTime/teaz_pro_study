@@ -102,6 +102,12 @@ class StudyFlowTests {
 		assertThat(progress.path("completed").intValue()).isEqualTo(1);
 		assertThat(progress.path("total").intValue()).isEqualTo(4);
 
+		// Overview for other apps: lecture 1 at 1/4, lecture 2 not generated (0 %) -> 12 %.
+		JsonNode overview = body(mvc.perform(get("/api/overview").with(user("alice"))).andExpect(status().isOk()));
+		assertThat(overview.path("courses").size()).isEqualTo(1);
+		assertThat(overview.path("courses").get(0).path("title").asString()).isEqualTo("Operations Research");
+		assertThat(overview.path("courses").get(0).path("percent").intValue()).isEqualTo(12);
+
 		// Chat: the mock proposes an extra page when asked for more practice.
 		JsonNode turn = body(mvc.perform(post("/api/lectures/" + lectureId + "/chat").with(user("alice"))
 				.contentType(MediaType.APPLICATION_JSON).content("{\"text\": \"Bitte mehr Übungen\"}"))

@@ -82,6 +82,26 @@ public class CourseService {
 				.toList());
 	}
 
+	/**
+	 * The current user's courses, newest first, with progress in percent: the
+	 * average over all lectures of each lecture's completed share of pages.
+	 * Lectures without pages yet count as 0 %, so one finished lecture out of
+	 * ten reads 10 %, not 100 %.
+	 */
+	public CourseDtos.Overview overview() {
+		return tx.execute(status -> new CourseDtos.Overview(courses.findByOwnerIdOrderByCreatedAtDesc(user.id()).stream()
+				.map(course -> {
+					List<Lecture> courseLectures = lectures.findByCourseIdOrderByPosition(course.getId());
+					Map<UUID, CourseDtos.Progress> progress = progress(courseLectures);
+					double share = courseLectures.stream()
+							.map(lecture -> progress.getOrDefault(lecture.getId(), CourseDtos.Progress.NONE))
+							.mapToDouble(p -> p.total() == 0 ? 0 : (double) p.completed() / p.total())
+							.average().orElse(0);
+					return new CourseDtos.CourseProgress(course.getId(), course.getTitle(), (int) Math.floor(share * 100));
+				})
+				.toList()));
+	}
+
 	public CourseDtos.CourseDetail create(String title) {
 		if (title == null || title.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title is required.");
 		Course course = courses.save(new Course(user.id(), title.strip()));

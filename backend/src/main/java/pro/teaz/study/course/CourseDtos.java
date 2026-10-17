@@ -37,4 +37,12 @@ public final class CourseDtos {
 
 	public record TitleRequest(String title) {
 	}
+
+	/** @param percent 0-100, see CourseService#overview */
+	public record CourseProgress(UUID id, String title, int percent) {
+	}
+
+	/** GET /api/overview, for other apps (Portal's Study tile). */
+	public record Overview(List<CourseProgress> courses) {
+	}
 }
